@@ -1,16 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
-  useMap,
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
-import "leaflet.markercluster";
 
 import type { StationListItem } from "@/lib/types";
 
@@ -70,9 +68,6 @@ export default function Map({
   zoom,
   onMoveEnd,
 }: MapProps) {
-  const markersRef = useRef<L.MarkerClusterGroup | null>(null);
-  const mapRef = useMap;
-
   return (
     <MapContainer
       center={center}

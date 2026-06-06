@@ -141,6 +141,8 @@ def save_stations_to_db(db: Session, stations: list[dict]) -> int:
     for s in stations:
         existing = db.query(Station).filter(Station.ocm_id == s["ocm_id"]).first()
         connectors_data = s.pop("connectors", [])
+        s.pop("connector_types", None)
+        s.pop("max_power_kw", None)
         if existing:
             for key, val in s.items():
                 if key != "ocm_id":
