@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#__next {
+  height: 100%;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.marker-cluster-small {
+  background-color: rgba(34, 197, 94, 0.3);
+}
+.marker-cluster-small div {
+  background-color: rgba(34, 197, 94, 0.6);
+  color: #fff;
+  font-weight: 700;
+}
+.marker-cluster-medium {
+  background-color: rgba(34, 197, 94, 0.3);
+}
+.marker-cluster-medium div {
+  background-color: rgba(34, 197, 94, 0.6);
+  color: #fff;
+  font-weight: 700;
+}
+.marker-cluster-large {
+  background-color: rgba(34, 197, 94, 0.3);
+}
+.marker-cluster-large div {
+  background-color: rgba(34, 197, 94, 0.6);
+  color: #fff;
+  font-weight: 700;
+}
