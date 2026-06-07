@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
-  useMapEvents,
+  useMap,
 } from "react-leaflet";
 import L from "leaflet";
 
@@ -18,7 +18,6 @@ interface MapProps {
   onSelect: (station: StationListItem) => void;
   center: [number, number];
   zoom: number;
-  onMoveEnd?: (center: [number, number], zoom: number) => void;
 }
 
 function createIcon(color: string) {
@@ -37,37 +36,22 @@ function createIcon(color: string) {
 const defaultIcon = createIcon("#22c55e");
 const selectedIcon = createIcon("#2563eb");
 
-function MapController({
-  center,
-  zoom,
-  onMoveEnd,
-}: {
-  center: [number, number];
-  zoom: number;
-  onMoveEnd?: (center: [number, number], zoom: number) => void;
-}) {
-  const map = useMapEvents({
-    moveend: () => {
-      const c = map.getCenter();
-      onMoveEnd?.([c.lat, c.lng], map.getZoom());
-    },
-  });
+function MapController({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  const initial = useRef(true);
 
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    if (initial.current) {
+      initial.current = false;
+      return;
+    }
+    map.setView(center, zoom, { animate: true });
+  }, [center[0], center[1], zoom]);
 
   return null;
 }
 
-export default function Map({
-  stations,
-  selectedId,
-  onSelect,
-  center,
-  zoom,
-  onMoveEnd,
-}: MapProps) {
+export default function Map({ stations, selectedId, onSelect, center, zoom }: MapProps) {
   return (
     <MapContainer
       center={center}
@@ -76,11 +60,12 @@ export default function Map({
       zoomControl={true}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        detectRetina={true}
       />
 
-      <MapController center={center} zoom={zoom} onMoveEnd={onMoveEnd} />
+      <MapController center={center} zoom={zoom} />
 
       {stations.map((s) => (
         <Marker

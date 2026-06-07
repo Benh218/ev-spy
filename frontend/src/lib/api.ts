@@ -76,3 +76,10 @@ export async function refreshStations(
     { method: "POST" }
   );
 }
+
+export async function seedMockData(force: boolean = true): Promise<{
+  message: string;
+  count: number;
+}> {
+  return fetchJson(`${API_BASE}/api/seed?force=${force}`, { method: "POST" });
+}

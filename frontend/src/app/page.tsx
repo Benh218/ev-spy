@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import FilterPanel from "@/components/FilterPanel";
 import SearchBar from "@/components/SearchBar";
 import StationDetail from "@/components/StationDetail";
-import { searchStations } from "@/lib/api";
+import { searchStations, seedMockData } from "@/lib/api";
 import type { StationFilters, StationListItem } from "@/lib/types";
 
 const Map = dynamic(() => import("@/components/Map"), {
@@ -107,8 +107,22 @@ export default function Home() {
   );
 
   useEffect(() => {
-    loadStations(center[0], center[1]);
+    loadStations();
   }, [filters]);
+
+  const handleRefresh = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await seedMockData();
+      await loadStations();
+    } catch (e) {
+      console.error("Failed to refresh", e);
+      setError("Failed to refresh data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [loadStations]);
 
   const handleSearch = useCallback(
     (query: string) => {
@@ -139,14 +153,6 @@ export default function Home() {
     setShowDetail(true);
   }, []);
 
-  const handleMapMoveEnd = useCallback(
-    (newCenter: [number, number], newZoom: number) => {
-      setCenter(newCenter);
-      setZoom(newZoom);
-    },
-    []
-  );
-
   return (
     <main className="h-full flex flex-col">
       <header className="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-3">
@@ -170,7 +176,27 @@ export default function Home() {
               loading={loading}
             />
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              title="Refresh mock data"
+              className="p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </button>
             <FilterPanel filters={filters} onChange={setFilters} />
           </div>
         </div>
@@ -184,7 +210,6 @@ export default function Home() {
             onSelect={handleSelect}
             center={center}
             zoom={zoom}
-            onMoveEnd={handleMapMoveEnd}
           />
         </div>
 
