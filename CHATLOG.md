@@ -51,3 +51,39 @@
 - `frontend/src/components/SearchBar.tsx` — decorative icon → proper submit button
 - `frontend/src/lib/api.ts` — relative URLs via Next.js proxy
 - `frontend/next.config.js` — removed `output: "standalone"`
+
+### 9. Connector mutation bug on re-seed
+- **Root cause:** `mock_data.py:seed_stations` called `s.pop("connectors")` which permanently mutated the module-level `MOCK_STATIONS` dict. Any subsequent re-seed (via refresh button or restart) lost all connectors.
+- **Fix:** Use `copy.deepcopy()` before popping so the original list is preserved.
+
+### 10. Suggestions overlay covering the Search button
+- **Root cause:** The suggestions dropdown used `className="absolute top-full mt-1 left-0 right-14"`. `right-14` (56px) left only 56px uncovered on the right, but the Search + Location buttons needed ~148px. The suggestions overlay covered the Search button, intercepting click events.
+- **Fix:** Moved the suggestions dropdown inside the input's wrapper div (`relative flex-1`) with `left-0 right-0` so it is exactly as wide as the input and never overlaps the buttons.
+
+### 11. Input text invisible in dark mode
+- **Root cause:** The `.dark` class on `<html>` set `color-scheme: dark`, which makes browsers render `<input>` text as white by default. The input had `bg-white/95` (light background) but no explicit text color — white text on white = invisible.
+- **Fix:** Added `text-gray-900 dark:text-gray-100` to the input, and `text-gray-800 dark:text-gray-200` to suggestion items.
+
+### 12. Nominatim API silently failing
+- **Root cause:** The `fetchSuggestions` catch block called `setSuggestions([])` with no logging. Non-200 responses or network errors were silently swallowed. Also, no `res.ok` check meant error pages were parsed as valid JSON.
+- **Fix:** Added `if (!res.ok) throw new Error(...)` before parsing.
+
+### 13. Zombie `next-server` process serving stale build (CRITICAL)
+- **Root cause:** The original `next start` process (PID 7274) was never killed. `fuser -k 3000/tcp` silently failed (container permissions), and `killall -9 node` didn't match the process name `next-server`. Every subsequent "rebuild and restart" deployed new code to disk, but the zombie server continued serving the very first build's HTML with wrong chunk hashes (`page-230d120cabeb2a1e.js` referenced in HTML but `page-16d38e43310abffe.js` on disk — 400 error). Every browser request for the page chunk failed silently, breaking all interactivity.
+- **Root cause discovered via:** Build ID mismatch — running server had `em9n83MkxVlyxDGh803jS` (old) while `.next/BUILD_ID` was `p92e7STC2UF3q7kTtIMa4` (current). Pre-rendered `index.html` on disk had correct hashes, but the server generated fresh HTML with old hashes from its in-memory build manifest.
+- **Fix:** Found the zombie via `/proc/7274/exe` → `next-server (v14.2.35)`, killed with `kill -9 7274`. Rebuilt clean (`rm -rf .next && npm run build`) and restarted on port 3000. All chunk hashes now match, all JS files return 200.
+- **Lesson:** Never trust `fuser -k` in container environments. Always verify with `cat /proc/*/cmdline | grep next` or a direct build ID comparison.
+
+## Root Cause Summary
+Despite 8+ rounds of fixes, the core search functionality never worked because **the server serving port 3000 was a zombie process from the first build**. Every code change (CORS fix, text color, suggestions overlay, Nominatim headers) was applied to disk but never served to the browser. The user was testing the same broken first build for the entire session.
+
+## Running Services
+- **Frontend:** `http://localhost:3000` (Next.js production mode, fresh build)
+- **Backend:** `http://localhost:8000` (FastAPI, 25 seed stations)
+- **API proxy:** All `/api/*` requests on port 3000 proxy to port 8000
+- **Service Worker:** v2, static-assets-only cache strategy
+
+## Files Modified (this session)
+- `backend/app/services/mock_data.py` — deepcopy before pop
+- `frontend/src/components/SearchBar.tsx` — text colors, suggestions positioning, Nominatim error handling
+- `CHATLOG.md` — this entry

@@ -515,8 +515,10 @@ def seed_stations(db: Session, force: bool = False) -> int:
         if existing:
             continue
 
-        connectors_data = s.pop("connectors", [])
-        station = Station(**s)
+        import copy
+        station_data = copy.deepcopy(s)
+        connectors_data = station_data.pop("connectors", [])
+        station = Station(**station_data)
         db.add(station)
         db.flush()
 

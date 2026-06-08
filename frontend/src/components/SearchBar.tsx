@@ -35,6 +35,7 @@ export default function SearchBar({
           q + ", Australia"
         )}&limit=5`
       );
+      if (!res.ok) throw new Error(`Nominatim ${res.status}`);
       const data = await res.json();
       setSuggestions(
         data.map((item: any) => ({
@@ -89,10 +90,24 @@ export default function SearchBar({
             value={query}
             onChange={(e) => handleChange(e.target.value)}
             placeholder="Search suburb, postcode, or place..."
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 shadow-sm bg-white/95 backdrop-blur text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 shadow-sm bg-white/95 backdrop-blur text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute top-full mt-1 left-0 right-0 bg-white rounded-xl shadow-lg border border-gray-100 z-[1000] max-h-60 overflow-y-auto">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onMouseDown={() => handleSelect(s)}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-green-50 border-b border-gray-50 last:border-0 transition-colors"
+                >
+                  <span className="block truncate text-gray-800 dark:text-gray-200">{s.display}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <button
           type="submit"
@@ -131,21 +146,6 @@ export default function SearchBar({
           </svg>
         </button>
       </form>
-
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full mt-1 left-0 right-14 bg-white rounded-xl shadow-lg border border-gray-100 z-[1000] max-h-60 overflow-y-auto">
-          {suggestions.map((s, i) => (
-            <button
-              key={i}
-              type="button"
-              onMouseDown={() => handleSelect(s)}
-              className="w-full text-left px-4 py-3 text-sm hover:bg-green-50 border-b border-gray-50 last:border-0 transition-colors"
-            >
-              <span className="block truncate">{s.display}</span>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
