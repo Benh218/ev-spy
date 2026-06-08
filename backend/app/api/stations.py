@@ -1,11 +1,11 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from ..database import get_db
-from ..models import Connector, Station, UserReport
-from ..schemas import StationListItem, StationSchema, UserReportSchema
+from ..models import Connector, Station, StationPhoto, UserReport
+from ..schemas import StationListItem, StationPhotoSchema, StationSchema, UserReportSchema
 from ..services.ocm_service import (
     fetch_stations_from_ocm,
     get_stations_near,
@@ -31,9 +31,18 @@ async def list_stations(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[StationListItem]:
+    latest_status_subq = (
+        db.query(UserReport.status)
+        .filter(UserReport.station_id == Station.id)
+        .order_by(UserReport.created_at.desc())
+        .limit(1)
+        .correlate(Station)
+        .scalar_subquery()
+    )
+
     query = (
-        db.query(Station)
-        .options(joinedload(Station.connectors))
+        db.query(Station, latest_status_subq.label("latest_status"))
+        .options(selectinload(Station.connectors))
         .order_by(Station.name)
     )
 
@@ -72,7 +81,7 @@ async def list_stations(
     rows = query.offset(offset).limit(limit).all()
 
     result = []
-    for s in rows:
+    for s, latest_status in rows:
         ctypes = list({c.type for c in s.connectors})
         max_power = max((c.power_kw for c in s.connectors if c.power_kw), default=None)
         result.append(
@@ -87,6 +96,7 @@ async def list_stations(
                 connector_types=ctypes,
                 max_power_kw=max_power,
                 status_type=s.status_type,
+                latest_status=latest_status,
             )
         )
 
@@ -100,7 +110,7 @@ def get_station(
 ) -> StationSchema:
     station = (
         db.query(Station)
-        .options(joinedload(Station.connectors))
+        .options(selectinload(Station.connectors), selectinload(Station.photos))
         .filter(Station.id == station_id)
         .first()
     )
@@ -144,6 +154,15 @@ def get_station(
         ],
         latest_reports=[
             UserReportSchema.model_validate(r) for r in reports
+        ],
+        photos=[
+            StationPhotoSchema(
+                id=p.id,
+                filename=p.filename,
+                url=f"/uploads/{p.filename}",
+                uploaded_at=p.uploaded_at,
+            )
+            for p in station.photos
         ],
     )
 

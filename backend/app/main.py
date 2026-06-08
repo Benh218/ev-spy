@@ -1,13 +1,15 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import Connector, Station  # noqa: F401
+from .models import Connector, Station, StationPhoto  # noqa: F401
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,11 +46,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from .api import reports, stations  # noqa: E402
+from .api import photos, reports, stations  # noqa: E402
 from .services.mock_data import seed_stations  # noqa: E402
+
+uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+uploads_dir.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 app.include_router(stations.router)
 app.include_router(reports.router)
+app.include_router(photos.router)
 
 
 @app.post("/api/seed")

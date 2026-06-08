@@ -18,6 +18,7 @@ export interface StationListItem {
   connector_types: string[];
   max_power_kw: number | null;
   status_type: string | null;
+  latest_status?: string | null;
 }
 
 export interface UserReport {
@@ -26,6 +27,13 @@ export interface UserReport {
   status: string;
   comment: string | null;
   created_at: string;
+}
+
+export interface StationPhoto {
+  id: number;
+  filename: string;
+  url: string;
+  uploaded_at: string;
 }
 
 export interface StationDetail {
@@ -46,12 +54,37 @@ export interface StationDetail {
   status_type: string | null;
   connectors: Connector[];
   latest_reports: UserReport[];
+  photos: StationPhoto[];
 }
 
 export interface StationFilters {
   connectorType: string;
   minPowerKw: number | null;
   operator: string;
+}
+
+export interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: string;
+  battery_kwh: number;
+  max_ac_kw: number;
+  max_dc_kw: number;
+  connector_types: string[];
+}
+
+export interface TripWaypoint {
+  lat: number;
+  lng: number;
+  label: string;
+}
+
+export interface TripSegment {
+  from: TripWaypoint;
+  to: TripWaypoint;
+  distance_km: number;
+  stations: StationListItem[];
 }
 
 export const CONNECTOR_OPTIONS = [
@@ -89,4 +122,20 @@ export const STATUS_LABELS: Record<string, string> = {
   in_use: "In Use",
   blocked: "Blocked",
   unavailable: "Unavailable",
+};
+
+export const STATUS_MARKER_COLORS: Record<string, string> = {
+  working: "#22c55e",
+  broken: "#ef4444",
+  in_use: "#eab308",
+  blocked: "#f97316",
+  unavailable: "#6b7280",
+};
+
+export const STATUS_MARKER_ORDER: Record<string, number> = {
+  working: 0,
+  unavailable: 1,
+  in_use: 2,
+  blocked: 3,
+  broken: 4,
 };

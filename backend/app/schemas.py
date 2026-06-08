@@ -15,6 +15,15 @@ class ConnectorSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class StationPhotoSchema(BaseModel):
+    id: int
+    filename: str
+    url: str
+    uploaded_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class StationSchema(BaseModel):
     id: int
     ocm_id: int
@@ -33,6 +42,7 @@ class StationSchema(BaseModel):
     status_type: Optional[str] = None
     connectors: list[ConnectorSchema] = []
     latest_reports: list["UserReportSchema"] = []
+    photos: list[StationPhotoSchema] = []
 
     model_config = {"from_attributes": True}
 
@@ -48,8 +58,13 @@ class StationListItem(BaseModel):
     connector_types: list[str] = []
     max_power_kw: Optional[float] = None
     status_type: Optional[str] = None
+    latest_status: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+
+class StationPhotoCreate(BaseModel):
+    station_id: int
 
 
 class UserReportSchema(BaseModel):

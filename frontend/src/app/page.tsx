@@ -3,17 +3,22 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import FavoritesPanel from "@/components/FavoritesPanel";
 import FilterPanel from "@/components/FilterPanel";
+import ThemeToggle from "@/components/ThemeToggle";
 import SearchBar from "@/components/SearchBar";
 import StationDetail from "@/components/StationDetail";
+import TripPlanner from "@/components/TripPlanner";
+import VehicleSelector from "@/components/VehicleSelector";
 import { searchStations, seedMockData } from "@/lib/api";
+import { useFavorites, useRecentStations, useTheme, useVehicle } from "@/lib/hooks";
 import type { StationFilters, StationListItem } from "@/lib/types";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
   loading: () => (
-    <div className="h-full flex items-center justify-center bg-gray-100">
-      <div className="text-gray-400">Loading map...</div>
+    <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="text-gray-400 dark:text-gray-600">Loading map...</div>
     </div>
   ),
 });
@@ -35,6 +40,11 @@ export default function Home() {
   });
   const [error, setError] = useState("");
   const loadingRef = useRef(false);
+
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { recent, addRecent } = useRecentStations();
+  const { dark, toggleTheme } = useTheme();
+  const { vehicleId, setVehicleId } = useVehicle();
 
   const loadStations = useCallback(
     async (lat?: number, lng?: number, q?: string) => {
@@ -153,9 +163,18 @@ export default function Home() {
     setShowDetail(true);
   }, []);
 
+  const handleTripNavigate = useCallback(
+    (lat: number, lng: number, _label: string) => {
+      setCenter([lat, lng]);
+      setZoom(10);
+      loadStations(lat, lng);
+    },
+    [loadStations]
+  );
+
   return (
-    <main className="h-full flex flex-col">
-      <header className="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-3">
+    <main className="h-full flex flex-col bg-white dark:bg-gray-900 transition-colors">
+      <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 transition-colors">
         <div className="max-w-7xl mx-auto flex items-center gap-3">
           <div className="flex items-center gap-2 flex-shrink-0">
             <svg
@@ -165,7 +184,7 @@ export default function Home() {
             >
               <path d="M7 2v11h3v9l7-12h-4l4-8z" />
             </svg>
-            <span className="font-bold text-lg hidden sm:inline">
+            <span className="font-bold text-lg hidden sm:inline dark:text-white">
               ChargeSpot
             </span>
           </div>
@@ -177,14 +196,19 @@ export default function Home() {
             />
           </div>
           <div className="flex-shrink-0 flex items-center gap-2">
+            <VehicleSelector vehicleId={vehicleId} onChange={setVehicleId} />
+            <TripPlanner
+              onNavigate={handleTripNavigate}
+              onSelectStation={handleSelect}
+            />
             <button
               onClick={handleRefresh}
               disabled={loading}
               title="Refresh mock data"
-              className="p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
               <svg
-                className="w-5 h-5 text-gray-600"
+                className="w-5 h-5 text-gray-600 dark:text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -197,6 +221,7 @@ export default function Home() {
                 />
               </svg>
             </button>
+            <ThemeToggle dark={dark} onToggle={toggleTheme} />
             <FilterPanel filters={filters} onChange={setFilters} />
           </div>
         </div>
@@ -215,7 +240,7 @@ export default function Home() {
 
         {loading && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
-            <div className="bg-white rounded-full shadow-lg px-5 py-2 text-sm text-gray-600 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-full shadow-lg px-5 py-2 text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
               <svg
                 className="w-4 h-4 animate-spin text-green-600"
                 fill="none"
@@ -242,26 +267,55 @@ export default function Home() {
 
         {error && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000]">
-            <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg px-5 py-3 text-sm text-red-700 max-w-md text-center">
+            <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-xl shadow-lg px-5 py-3 text-sm text-red-700 dark:text-red-300 max-w-md text-center">
               {error}
             </div>
           </div>
         )}
 
         {showDetail && detailStationId && (
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md z-[1000] shadow-2xl bg-white rounded-l-2xl overflow-hidden">
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md z-[1000] shadow-2xl bg-white dark:bg-gray-900 rounded-l-2xl overflow-hidden">
             <StationDetail
               stationId={detailStationId}
               onClose={() => setShowDetail(false)}
+              vehicleId={vehicleId}
+              isFavorite={isFavorite(detailStationId)}
+              onToggleFavorite={toggleFavorite}
+              onAddRecent={addRecent}
             />
           </div>
         )}
 
-        <div className="absolute bottom-4 left-4 z-[1000]">
-          <div className="bg-white/90 backdrop-blur rounded-lg shadow text-xs text-gray-500 px-3 py-2">
+        <div className="absolute bottom-4 left-4 z-[1000] flex flex-col gap-2">
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow text-xs text-gray-500 dark:text-gray-400 px-3 py-2">
             {stations.length} station{stations.length !== 1 ? "s" : ""} shown
             {filters.connectorType && ` \u2022 filtered`}
           </div>
+          <FavoritesPanel
+            favorites={favorites}
+            stations={stations}
+            onSelect={handleSelect}
+            onToggleFavorite={toggleFavorite}
+          />
+          {recent.length > 0 && (
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow text-xs text-gray-500 dark:text-gray-400 px-3 py-2 max-w-[250px]">
+              <p className="font-semibold mb-1 dark:text-gray-300">Recent</p>
+              <div className="space-y-1 max-h-[100px] overflow-y-auto">
+                {recent.slice(0, 5).map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => {
+                      setDetailStationId(r.id);
+                      setShowDetail(true);
+                    }}
+                    className="block truncate w-full text-left hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                  >
+                    {r.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>

@@ -1,4 +1,4 @@
-import type { StationDetail, StationListItem, UserReport } from "./types";
+import type { StationDetail, StationListItem, StationPhoto, UserReport } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -82,4 +82,21 @@ export async function seedMockData(force: boolean = true): Promise<{
   count: number;
 }> {
   return fetchJson(`${API_BASE}/api/seed?force=${force}`, { method: "POST" });
+}
+
+export async function uploadPhoto(
+  stationId: number,
+  file: File
+): Promise<StationPhoto> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_BASE}/api/photos/upload/${stationId}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Upload error ${res.status}: ${text}`);
+  }
+  return res.json();
 }

@@ -28,6 +28,8 @@ class Station(Base):
     date_updated = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     connectors = relationship("Connector", back_populates="station", cascade="all, delete-orphan")
+    reports = relationship("UserReport", back_populates="station", cascade="all, delete-orphan")
+    photos = relationship("StationPhoto", back_populates="station", cascade="all, delete-orphan")
 
 
 class Connector(Base):
@@ -52,3 +54,16 @@ class UserReport(Base):
     status = Column(String(20), nullable=False)
     comment = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    station = relationship("Station", back_populates="reports")
+
+
+class StationPhoto(Base):
+    __tablename__ = "station_photos"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    station_id = Column(Integer, ForeignKey("stations.id", ondelete="CASCADE"), nullable=False)
+    filename = Column(String(255), nullable=False)
+    uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    station = relationship("Station", back_populates="photos")
