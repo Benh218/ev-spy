@@ -19,6 +19,7 @@ interface MapProps {
   onSelect: (station: StationListItem) => void;
   center: [number, number];
   zoom: number;
+  dark?: boolean;
 }
 
 function createIcon(color: string, pulse = false) {
@@ -59,7 +60,7 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   return null;
 }
 
-export default function Map({ stations, selectedId, onSelect, center, zoom }: MapProps) {
+export default function Map({ stations, selectedId, onSelect, center, zoom, dark }: MapProps) {
   return (
     <MapContainer
       center={center}
@@ -69,7 +70,10 @@ export default function Map({ stations, selectedId, onSelect, center, zoom }: Ma
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        url={dark
+          ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        }
         detectRetina={true}
       />
 

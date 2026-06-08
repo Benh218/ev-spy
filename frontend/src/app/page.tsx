@@ -84,6 +84,10 @@ export default function Home() {
             min_power_kw: filters.minPowerKw ?? undefined,
             operator: filters.operator || undefined,
           });
+          if (data.length > 0) {
+            setCenter([data[0].latitude, data[0].longitude]);
+            setZoom(12);
+          }
         } else if (lat !== undefined && lng !== undefined) {
           data = await searchStations({
             lat,
@@ -235,6 +239,7 @@ export default function Home() {
             onSelect={handleSelect}
             center={center}
             zoom={zoom}
+            dark={dark}
           />
         </div>
 

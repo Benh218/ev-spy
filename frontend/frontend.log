@@ -1,0 +1,33 @@
+
+> chargespot@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
+  ▲ Next.js 14.2.35
+  - Local:        http://local ○ Compiling / ...
+ ✓ Compiled / in 10.4s (585 modules)
+ GET / 200 in 11197ms
+ ✓ Com ○ Compiling /_not-found .. ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 756ms (574 mo[?25h
+ GET /s 404 in 935ms
+[?25h
+/ 200 in 85ms
+ GET / 200 in 97ms
+ GET / 200 in 85ms
+ GET / 200 in 159ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 715ms (574 modules)
+ GET /_next/static/css/app/layout.css?v=1780907412392 404 in 896ms
+ GET /_next/static/chunks/webpack.js?v=1780907412392 404 in 916ms
+ GET /_next/static/chunks/main-app.js?v=1780907412392 404 in 73ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 70ms
+ GET /_next/static/chunks/app/page.js 404 in 68ms
+ GET /_next/static/css/app/layout.css 404 in 46ms
+ GET /_next/static/css/app/layout.css 404 in 41ms
+ GET /_next/static/chunks/main-app.js 404 in 40ms
+ GET /_next/static/css/app/layout.css?v=1780907737966 404 in 63ms
+ GET / 200 in 144ms
+ GET /s 404 in 57ms
+[?25h

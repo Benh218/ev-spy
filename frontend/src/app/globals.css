@@ -33,7 +33,7 @@ body {
 }
 
 .dark .leaflet-container {
-  filter: invert(0.9) hue-rotate(180deg);
+  /* Dark tiles used directly via CARTO dark_all - no invert filter needed */
 }
 
 .dark .leaflet-popup-content-wrapper,
