@@ -33,7 +33,7 @@ export default function Home() {
   const [detailStationId, setDetailStationId] = useState<number | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [center, setCenter] = useState<[number, number]>(SYDNEY);
-  const [zoom, setZoom] = useState(11);
+  const [zoom, setZoom] = useState(12);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<StationFilters>({
     connectorType: "",
