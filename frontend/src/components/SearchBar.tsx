@@ -74,18 +74,18 @@ export default function SearchBar({
       const reqId = ++reqIdRef.current;
       try {
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&countrycodes=au`,
-          { headers: { "User-Agent": "ChargeSpot/1.0" } }
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&countrycodes=au`
         );
         if (!res.ok) throw new Error(`Nominatim ${res.status}`);
         if (reqId !== reqIdRef.current) return;
         const data = await res.json();
         if (reqId !== reqIdRef.current) return;
         renderSuggestions(data);
-      } catch {
+      } catch (err) {
         if (reqId === reqIdRef.current && suggestionsEl) suggestionsEl.innerHTML = "";
+        console.error("Nominatim error:", err);
       }
-    }, 300);
+    }, 800);
 
     form.addEventListener("submit", handleSubmit);
     input.addEventListener("input", fetchSuggestions);

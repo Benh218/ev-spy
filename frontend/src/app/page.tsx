@@ -201,26 +201,83 @@ export default function Home() {
   return (
     <main className="h-full flex flex-col bg-white dark:bg-gray-900 transition-colors overflow-x-hidden">
       <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 transition-colors">
-        <div className="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <svg
-              className="w-7 h-7 text-green-600"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M7 2v11h3v9l7-12h-4l4-8z" />
-            </svg>
-            <span className="font-bold text-lg hidden sm:inline dark:text-white">
-              ChargeSpot
-            </span>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <svg
+                className="w-7 h-7 text-green-600"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7 2v11h3v9l7-12h-4l4-8z" />
+              </svg>
+              <span className="font-bold text-lg hidden sm:inline dark:text-white">
+                ChargeSpot
+              </span>
+            </div>
+            <div className="flex-1 max-w-2xl">
+              <SearchBar
+                onSearch={handleSearch}
+                onUseMyLocation={handleUseMyLocation}
+              />
+            </div>
           </div>
-          <div className="flex-1 max-w-2xl">
-            <SearchBar
-              onSearch={handleSearch}
-              onUseMyLocation={handleUseMyLocation}
+          <div className="flex md:hidden items-center gap-2 overflow-x-auto mt-2 pb-1">
+            <VehicleSelector vehicleId={vehicleId} onChange={setVehicleId} />
+            <TripPlanner
+              onNavigate={handleTripNavigate}
+              onSelectStation={handleSelect}
             />
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              title="Refresh mock data"
+              className="flex-shrink-0 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600 dark:text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </button>
+            <ThemeToggle dark={dark} onToggle={toggleTheme} />
+            <button
+              onClick={() => setShowList((p) => !p)}
+              title={showList ? "Hide list" : "Show list"}
+              className={`flex-shrink-0 p-3 rounded-xl border shadow-sm transition-colors ${
+                showList
+                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setSortByPrice((p) => !p)}
+              title={sortByPrice ? "Showing cheapest first" : "Sort by price"}
+              className={`flex-shrink-0 p-3 rounded-xl border shadow-sm transition-colors ${
+                sortByPrice
+                  ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <FilterPanel filters={filters} onChange={setFilters} />
           </div>
-          <div className="flex-shrink-0 flex items-center gap-2 flex-wrap justify-end">
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             <VehicleSelector vehicleId={vehicleId} onChange={setVehicleId} />
             <TripPlanner
               onNavigate={handleTripNavigate}
