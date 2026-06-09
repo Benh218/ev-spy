@@ -96,7 +96,7 @@ export default function TripPlanner({ onNavigate, onSelectStation }: TripPlanner
       </button>
 
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4 max-h-[80vh] overflow-y-auto">
+        <div className="absolute top-full left-0 sm:right-0 mt-2 w-60 sm:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4 max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm dark:text-white">Trip Planner</h3>
             {waypoints.length > 0 && (
