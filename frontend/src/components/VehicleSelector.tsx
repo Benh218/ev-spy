@@ -53,7 +53,7 @@ export default function VehicleSelector({ vehicleId, onChange }: VehicleSelector
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4">
+        <div className="absolute top-full left-0 sm:right-0 mt-2 w-[calc(100vw-3rem)] sm:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4 max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm dark:text-white">My Vehicle</h3>
             {vehicleId && (

@@ -52,7 +52,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4">
+        <div className="absolute top-full left-0 sm:right-0 mt-2 w-[calc(100vw-3rem)] sm:w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">Filters</h3>
             {hasFilters && (
