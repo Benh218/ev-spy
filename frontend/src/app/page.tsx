@@ -199,7 +199,7 @@ export default function Home() {
   }, [stations, sortByPrice]);
 
   return (
-    <main className="h-full flex flex-col bg-white dark:bg-gray-900 transition-colors">
+    <main className="h-full flex flex-col bg-white dark:bg-gray-900 transition-colors overflow-x-hidden">
       <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 transition-colors">
         <div className="max-w-7xl mx-auto flex items-center gap-3">
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -221,12 +221,17 @@ export default function Home() {
             />
           </div>
           <div className="flex-shrink-0 flex items-center gap-2">
-            <VehicleSelector vehicleId={vehicleId} onChange={setVehicleId} />
-            <TripPlanner
-              onNavigate={handleTripNavigate}
-              onSelectStation={handleSelect}
-            />
-            <button
+            <div className="hidden sm:flex">
+              <VehicleSelector vehicleId={vehicleId} onChange={setVehicleId} />
+            </div>
+            <div className="hidden sm:flex">
+              <TripPlanner
+                onNavigate={handleTripNavigate}
+                onSelectStation={handleSelect}
+              />
+            </div>
+            <div className="hidden sm:inline-flex">
+              <button
               onClick={handleRefresh}
               disabled={loading}
               title="Refresh mock data"
@@ -246,6 +251,7 @@ export default function Home() {
                 />
               </svg>
             </button>
+            </div>
             <ThemeToggle dark={dark} onToggle={toggleTheme} />
             <button
               onClick={() => setShowList((p) => !p)}
@@ -260,6 +266,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
             </button>
+            <div className="hidden sm:inline-flex">
             <button
               onClick={() => setSortByPrice((p) => !p)}
               title={sortByPrice ? "Showing cheapest first" : "Sort by price"}
@@ -273,6 +280,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
+            </div>
             <FilterPanel filters={filters} onChange={setFilters} />
           </div>
         </div>
