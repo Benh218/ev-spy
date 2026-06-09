@@ -11,6 +11,7 @@ import {
 import L from "leaflet";
 
 import type { StationListItem } from "@/lib/types";
+import type { TripWaypoint } from "@/lib/types";
 import { STATUS_LABELS, STATUS_MARKER_COLORS } from "@/lib/types";
 
 interface MapProps {
@@ -21,6 +22,7 @@ interface MapProps {
   zoom: number;
   dark?: boolean;
   cheapestStationId?: number | null;
+  waypoints?: TripWaypoint[];
 }
 
 function createIcon(color: string, pulse = false) {
@@ -62,7 +64,61 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   return null;
 }
 
-export default function Map({ stations, selectedId, onSelect, center, zoom, dark, cheapestStationId }: MapProps) {
+function RouteLayer({ waypoints }: { waypoints: TripWaypoint[] }) {
+  const map = useMap();
+  const layerRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    if (waypoints.length < 2) return;
+
+    const group = L.layerGroup().addTo(map);
+    layerRef.current = group;
+    let cancelled = false;
+
+    const originIcon = L.divIcon({
+      className: "",
+      html: '<div style="width:16px;height:16px;background:#22c55e;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+    L.marker([waypoints[0].lat, waypoints[0].lng], { icon: originIcon })
+      .bindPopup(`<b>Origin:</b> ${waypoints[0].label}`)
+      .addTo(group);
+
+    const destIcon = L.divIcon({
+      className: "",
+      html: '<div style="width:16px;height:16px;background:#ef4444;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+    const last = waypoints[waypoints.length - 1];
+    L.marker([last.lat, last.lng], { icon: destIcon })
+      .bindPopup(`<b>Destination:</b> ${last.label}`)
+      .addTo(group);
+
+    const coords = waypoints.map((w) => `${w.lng},${w.lat}`).join(";");
+    fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?geometries=geojson&overview=full&alternatives=false`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled || !data.routes || data.routes.length === 0) return;
+        const route = data.routes[0];
+        const latlngs: [number, number][] = route.geometry.coordinates.map(
+          (c: [number, number]) => [c[1], c[0]] as [number, number]
+        );
+        L.polyline(latlngs, { color: "#8b5cf6", weight: 4, opacity: 0.7 }).addTo(group);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+      group.remove();
+    };
+  }, [waypoints, map]);
+
+  return null;
+}
+
+export default function Map({ stations, selectedId, onSelect, center, zoom, dark, cheapestStationId, waypoints }: MapProps) {
   return (
     <MapContainer
       center={center}
@@ -80,6 +136,7 @@ export default function Map({ stations, selectedId, onSelect, center, zoom, dark
       />
 
       <MapController center={center} zoom={zoom} />
+      {waypoints && waypoints.length >= 2 && <RouteLayer waypoints={waypoints} />}
 
       {stations.map((s) => {
         let icon = defaultIcon;

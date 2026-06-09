@@ -7,9 +7,10 @@ import { searchStations } from "@/lib/api";
 interface TripPlannerProps {
   onNavigate: (lat: number, lng: number, label: string) => void;
   onSelectStation: (station: StationListItem) => void;
+  onWaypointsChange?: (waypoints: TripWaypoint[]) => void;
 }
 
-export default function TripPlanner({ onNavigate, onSelectStation }: TripPlannerProps) {
+export default function TripPlanner({ onNavigate, onSelectStation, onWaypointsChange }: TripPlannerProps) {
   const [open, setOpen] = useState(false);
   const [waypoints, setWaypoints] = useState<TripWaypoint[]>([]);
   const [origin, setOrigin] = useState("");
@@ -48,6 +49,7 @@ export default function TripPlanner({ onNavigate, onSelectStation }: TripPlanner
     }
 
     setWaypoints([orig, dest]);
+    onWaypointsChange?.([orig, dest]);
 
     const midLat = (orig.lat + dest.lat) / 2;
     const midLng = (orig.lng + dest.lng) / 2;
@@ -69,14 +71,15 @@ export default function TripPlanner({ onNavigate, onSelectStation }: TripPlanner
     } finally {
       setPlanning(false);
     }
-  }, [origin, destination, geocode, onNavigate]);
+  }, [origin, destination, geocode, onNavigate, onWaypointsChange]);
 
   const clear = useCallback(() => {
     setOrigin("");
     setDestination("");
     setWaypoints([]);
     setStations([]);
-  }, []);
+    onWaypointsChange?.([]);
+  }, [onWaypointsChange]);
 
   return (
     <div className="relative">

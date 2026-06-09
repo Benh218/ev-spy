@@ -14,7 +14,7 @@ import VehicleSelector from "@/components/VehicleSelector";
 import { searchStations, seedMockData } from "@/lib/api";
 import { useFavorites, useRecentStations, useTheme, useVehicle } from "@/lib/hooks";
 import { parseUsageCost } from "@/lib/vehicles";
-import type { StationFilters, StationListItem } from "@/lib/types";
+import type { StationFilters, StationListItem, TripWaypoint } from "@/lib/types";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -43,6 +43,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [sortByPrice, setSortByPrice] = useState(false);
   const [showList, setShowList] = useState(false);
+  const [routeWaypoints, setRouteWaypoints] = useState<TripWaypoint[]>([]);
   const reqIdRef = useRef(0);
 
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -227,6 +228,7 @@ export default function Home() {
             <TripPlanner
               onNavigate={handleTripNavigate}
               onSelectStation={handleSelect}
+              onWaypointsChange={setRouteWaypoints}
             />
             <button
               onClick={handleRefresh}
@@ -282,6 +284,7 @@ export default function Home() {
             <TripPlanner
               onNavigate={handleTripNavigate}
               onSelectStation={handleSelect}
+              onWaypointsChange={setRouteWaypoints}
             />
             <button
               onClick={handleRefresh}
@@ -345,6 +348,7 @@ export default function Home() {
             zoom={zoom}
             dark={dark}
             cheapestStationId={cheapestStationId}
+            waypoints={routeWaypoints}
           />
         </div>
 
