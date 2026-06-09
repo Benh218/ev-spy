@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import FavoritesPanel from "@/components/FavoritesPanel";
 import FilterPanel from "@/components/FilterPanel";
+import StationList from "@/components/StationList";
 import ThemeToggle from "@/components/ThemeToggle";
 import SearchBar from "@/components/SearchBar";
 import StationDetail from "@/components/StationDetail";
@@ -41,6 +42,7 @@ export default function Home() {
   });
   const [error, setError] = useState("");
   const [sortByPrice, setSortByPrice] = useState(false);
+  const [showList, setShowList] = useState(false);
   const reqIdRef = useRef(0);
 
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -171,6 +173,8 @@ export default function Home() {
     setSelectedId(station.id);
     setDetailStationId(station.id);
     setShowDetail(true);
+    setCenter([station.latitude, station.longitude]);
+    setZoom(15);
   }, []);
 
   const handleTripNavigate = useCallback(
@@ -243,6 +247,19 @@ export default function Home() {
               </svg>
             </button>
             <ThemeToggle dark={dark} onToggle={toggleTheme} />
+            <button
+              onClick={() => setShowList((p) => !p)}
+              title={showList ? "Hide list" : "Show list"}
+              className={`p-3 rounded-xl border shadow-sm transition-colors ${
+                showList
+                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
             <button
               onClick={() => setSortByPrice((p) => !p)}
               title={sortByPrice ? "Showing cheapest first" : "Sort by price"}
@@ -318,6 +335,17 @@ export default function Home() {
               isFavorite={isFavorite(detailStationId)}
               onToggleFavorite={toggleFavorite}
               onAddRecent={addRecent}
+            />
+          </div>
+        )}
+
+        {showList && (
+          <div className="absolute left-0 top-0 bottom-0 w-full max-w-sm z-[1000] shadow-2xl bg-white dark:bg-gray-900 rounded-r-2xl overflow-hidden border-r border-gray-200 dark:border-gray-700">
+            <StationList
+              stations={displayStations}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              onClose={() => setShowList(false)}
             />
           </div>
         )}
