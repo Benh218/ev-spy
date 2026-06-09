@@ -93,6 +93,7 @@ async def list_stations(
                 latitude=s.latitude,
                 longitude=s.longitude,
                 operator_name=s.operator_name,
+                usage_cost=s.usage_cost,
                 connector_types=ctypes,
                 max_power_kw=max_power,
                 status_type=s.status_type,

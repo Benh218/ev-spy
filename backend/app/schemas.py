@@ -55,6 +55,7 @@ class StationListItem(BaseModel):
     latitude: float
     longitude: float
     operator_name: Optional[str] = None
+    usage_cost: Optional[str] = None
     connector_types: list[str] = []
     max_power_kw: Optional[float] = None
     status_type: Optional[str] = None

@@ -105,3 +105,10 @@ export function isConnectorCompatible(connectorType: string, vehicle: Vehicle): 
     || vc.toLowerCase().includes(connectorType.toLowerCase().split(" ")[0].toLowerCase())
   );
 }
+
+/** Extract the primary per-kWh price from a usage_cost string, or Infinity if unparseable. */
+export function parseUsageCost(cost: string | null | undefined): number {
+  if (!cost) return Infinity;
+  const m = cost.match(/\$(\d+\.?\d*)/);
+  return m ? parseFloat(m[1]) : Infinity;
+}

@@ -15,6 +15,7 @@ export interface StationListItem {
   latitude: number;
   longitude: number;
   operator_name: string | null;
+  usage_cost: string | null;
   connector_types: string[];
   max_power_kw: number | null;
   status_type: string | null;

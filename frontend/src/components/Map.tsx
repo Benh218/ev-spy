@@ -20,6 +20,7 @@ interface MapProps {
   center: [number, number];
   zoom: number;
   dark?: boolean;
+  cheapestStationId?: number | null;
 }
 
 function createIcon(color: string, pulse = false) {
@@ -39,6 +40,7 @@ function createIcon(color: string, pulse = false) {
 
 const defaultIcon = createIcon("#22c55e");
 const selectedIcon = createIcon("#2563eb");
+const cheapestIcon = createIcon("#f59e0b");
 
 function getStatusIcon(status: string | null | undefined) {
   const color = STATUS_MARKER_COLORS[status || ""] || "#22c55e";
@@ -60,7 +62,7 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   return null;
 }
 
-export default function Map({ stations, selectedId, onSelect, center, zoom, dark }: MapProps) {
+export default function Map({ stations, selectedId, onSelect, center, zoom, dark, cheapestStationId }: MapProps) {
   return (
     <MapContainer
       center={center}
@@ -79,60 +81,75 @@ export default function Map({ stations, selectedId, onSelect, center, zoom, dark
 
       <MapController center={center} zoom={zoom} />
 
-      {stations.map((s) => (
-        <Marker
-          key={s.id}
-          position={[s.latitude, s.longitude]}
-          icon={s.id === selectedId ? selectedIcon : getStatusIcon(s.latest_status)}
-          eventHandlers={{
-            click: () => onSelect(s),
-          }}
-        >
-          <Popup>
-            <div className="text-sm min-w-[200px] dark:text-white">
-              <div className="flex items-center justify-between">
-                <strong className="text-base">{s.name}</strong>
-                {s.latest_status && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                    s.latest_status === "working" ? "bg-green-100 text-green-800" :
-                    s.latest_status === "broken" ? "bg-red-100 text-red-800" :
-                    s.latest_status === "in_use" ? "bg-yellow-100 text-yellow-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
-                    {STATUS_LABELS[s.latest_status] || s.latest_status}
-                  </span>
+      {stations.map((s) => {
+        let icon = defaultIcon;
+        if (s.id === selectedId) {
+          icon = selectedIcon;
+        } else if (s.id === cheapestStationId) {
+          icon = cheapestIcon;
+        } else {
+          icon = getStatusIcon(s.latest_status);
+        }
+        return (
+          <Marker
+            key={s.id}
+            position={[s.latitude, s.longitude]}
+            icon={icon}
+            eventHandlers={{
+              click: () => onSelect(s),
+            }}
+          >
+            <Popup>
+              <div className="text-sm min-w-[200px] dark:text-white">
+                <div className="flex items-center justify-between">
+                  <strong className="text-base">{s.name}</strong>
+                  {s.latest_status && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      s.latest_status === "working" ? "bg-green-100 text-green-800" :
+                      s.latest_status === "broken" ? "bg-red-100 text-red-800" :
+                      s.latest_status === "in_use" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {STATUS_LABELS[s.latest_status] || s.latest_status}
+                    </span>
+                  )}
+                </div>
+                {s.address && <p className="text-gray-600 dark:text-gray-400 mt-1">{s.address}</p>}
+                {s.operator_name && (
+                  <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
+                    {s.operator_name}
+                  </p>
+                )}
+                {s.usage_cost && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                    {s.usage_cost}
+                  </p>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {s.connector_types.slice(0, 4).map((ct) => (
+                    <span
+                      key={ct}
+                      className="text-xs bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-2 py-0.5 rounded"
+                    >
+                      {ct}
+                    </span>
+                  ))}
+                  {s.connector_types.length > 4 && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      +{s.connector_types.length - 4}
+                    </span>
+                  )}
+                </div>
+                {s.max_power_kw && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Up to {s.max_power_kw} kW
+                  </p>
                 )}
               </div>
-              {s.address && <p className="text-gray-600 dark:text-gray-400 mt-1">{s.address}</p>}
-              {s.operator_name && (
-                <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
-                  {s.operator_name}
-                </p>
-              )}
-              <div className="mt-2 flex flex-wrap gap-1">
-                {s.connector_types.slice(0, 4).map((ct) => (
-                  <span
-                    key={ct}
-                    className="text-xs bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-2 py-0.5 rounded"
-                  >
-                    {ct}
-                  </span>
-                ))}
-                {s.connector_types.length > 4 && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    +{s.connector_types.length - 4}
-                  </span>
-                )}
-              </div>
-              {s.max_power_kw && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Up to {s.max_power_kw} kW
-                </p>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+            </Popup>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 }

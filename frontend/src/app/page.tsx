@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import FavoritesPanel from "@/components/FavoritesPanel";
 import FilterPanel from "@/components/FilterPanel";
@@ -12,6 +12,7 @@ import TripPlanner from "@/components/TripPlanner";
 import VehicleSelector from "@/components/VehicleSelector";
 import { searchStations, seedMockData } from "@/lib/api";
 import { useFavorites, useRecentStations, useTheme, useVehicle } from "@/lib/hooks";
+import { parseUsageCost } from "@/lib/vehicles";
 import type { StationFilters, StationListItem } from "@/lib/types";
 
 const Map = dynamic(() => import("@/components/Map"), {
@@ -39,6 +40,7 @@ export default function Home() {
     operator: "",
   });
   const [error, setError] = useState("");
+  const [sortByPrice, setSortByPrice] = useState(false);
   const reqIdRef = useRef(0);
 
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -180,6 +182,18 @@ export default function Home() {
     [loadStations]
   );
 
+  const displayStations = useMemo(() => {
+    if (!sortByPrice) return stations;
+    const sorted = [...stations].sort((a, b) => parseUsageCost(a.usage_cost) - parseUsageCost(b.usage_cost));
+    return sorted;
+  }, [stations, sortByPrice]);
+
+  const cheapestStationId = useMemo(() => {
+    if (!sortByPrice || stations.length === 0) return null;
+    const sorted = [...stations].sort((a, b) => parseUsageCost(a.usage_cost) - parseUsageCost(b.usage_cost));
+    return sorted[0].id;
+  }, [stations, sortByPrice]);
+
   return (
     <main className="h-full flex flex-col bg-white dark:bg-gray-900 transition-colors">
       <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 transition-colors">
@@ -229,6 +243,19 @@ export default function Home() {
               </svg>
             </button>
             <ThemeToggle dark={dark} onToggle={toggleTheme} />
+            <button
+              onClick={() => setSortByPrice((p) => !p)}
+              title={sortByPrice ? "Showing cheapest first" : "Sort by price"}
+              className={`p-3 rounded-xl border shadow-sm transition-colors ${
+                sortByPrice
+                  ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
             <FilterPanel filters={filters} onChange={setFilters} />
           </div>
         </div>
@@ -237,12 +264,13 @@ export default function Home() {
       <div className="flex-1 relative flex">
         <div className="absolute inset-0">
           <Map
-            stations={stations}
+            stations={displayStations}
             selectedId={selectedId}
             onSelect={handleSelect}
             center={center}
             zoom={zoom}
             dark={dark}
+            cheapestStationId={cheapestStationId}
           />
         </div>
 
@@ -298,6 +326,7 @@ export default function Home() {
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow text-xs text-gray-500 dark:text-gray-400 px-3 py-2">
             {stations.length} station{stations.length !== 1 ? "s" : ""} shown
             {filters.connectorType && ` \u2022 filtered`}
+            {sortByPrice && " \u2022 cheapest first"}
           </div>
           <FavoritesPanel
             favorites={favorites}
