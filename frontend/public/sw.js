@@ -1,4 +1,4 @@
-const CACHE = "chargespot-static-v1";
+const CACHE = "chargespot-static-v2";
 
 const STATIC_URLS = [
   "/manifest.json",

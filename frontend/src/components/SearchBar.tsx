@@ -30,7 +30,7 @@ export default function SearchBar({
 
     const handleSubmit = (e: Event) => {
       e.preventDefault();
-      suggestionsEl.innerHTML = "";
+      if (suggestionsEl) suggestionsEl.innerHTML = "";
       const val = input.value.trim();
       if (val) onSearch(val);
     };
@@ -44,6 +44,7 @@ export default function SearchBar({
     };
 
     const renderSuggestions = (items: Suggestion[]) => {
+      if (!suggestionsEl) return;
       suggestionsEl.innerHTML = "";
       if (items.length === 0) return;
       const list = document.createElement("div");
@@ -54,7 +55,7 @@ export default function SearchBar({
         btn.className = "w-full text-left px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors";
         btn.textContent = item.display_name;
         btn.addEventListener("click", () => {
-          suggestionsEl.innerHTML = "";
+          if (suggestionsEl) suggestionsEl.innerHTML = "";
           input.value = item.display_name.split(",")[0].trim();
           onSearch(`${item.lat},${item.lon}`);
         });
@@ -64,6 +65,7 @@ export default function SearchBar({
     };
 
     const fetchSuggestions = debounce(async () => {
+      if (!input || !suggestionsEl) return;
       const q = input.value.trim();
       if (q.length < 2) {
         suggestionsEl.innerHTML = "";
@@ -81,9 +83,9 @@ export default function SearchBar({
         if (reqId !== reqIdRef.current) return;
         renderSuggestions(data);
       } catch {
-        if (reqId === reqIdRef.current) suggestionsEl.innerHTML = "";
+        if (reqId === reqIdRef.current && suggestionsEl) suggestionsEl.innerHTML = "";
       }
-    }, 250);
+    }, 300);
 
     form.addEventListener("submit", handleSubmit);
     input.addEventListener("input", fetchSuggestions);
@@ -91,7 +93,7 @@ export default function SearchBar({
       if (input.value.trim().length >= 2) fetchSuggestions();
     });
     document.addEventListener("click", (e) => {
-      if (!form.contains(e.target as Node)) suggestionsEl.innerHTML = "";
+      if (suggestionsEl && form && !form.contains(e.target as Node)) suggestionsEl.innerHTML = "";
     });
 
     return () => {
@@ -198,7 +200,7 @@ export default function SearchBar({
           position: "absolute",
           top: "calc(100% + 4px)",
           left: 0,
-          right: "104px",
+          right: 0,
           zIndex: 9999,
         }}
       />
