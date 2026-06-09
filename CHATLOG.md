@@ -138,8 +138,78 @@ Despite 8+ rounds of fixes, the core search functionality never worked because *
 - **API proxy:** All `/api/*` on port 3000 → port 8000
 
 ## Files Modified (this session)
-- `frontend/src/app/page.tsx` — loadingRef → reqIdRef request counter pattern
+- `frontend/src/app/page.tsx` — loadingRef → reqIdRef request counter pattern, sort-by-price & list view integration, `handleSelect` flies to station
 - `frontend/src/components/NearbyAmenities.tsx` — el.lng → el.lon (NaN fix)
-- `frontend/src/components/StationDetail.tsx` — actual vehicle data for connector compatibility
-- `frontend/src/components/SearchBar.tsx` — complete rewrite: native event listeners, inline styles, uncontrolled input, no suggestions, compact mobile layout
+- `frontend/src/components/StationDetail.tsx` — actual vehicle data for connector compatibility, Google/Apple/Waze navigation buttons
+- `frontend/src/components/SearchBar.tsx` — complete rewrite: native event listeners, inline styles, uncontrolled input, restored Nominatim suggestions via DOM manipulation
+- `frontend/src/components/FilterPanel.tsx` — dark mode classes on all elements
+- `frontend/src/lib/vehicles.ts` — `isAcConnector`, `estimateChargeTime` connector type param, `parseUsageCost`
+- `frontend/src/components/ChargeCalculator.tsx` — pass connector type to `estimateChargeTime`
+- `frontend/src/components/Map.tsx` — `cheapestStationId` prop, gold marker, usage cost in popup
+- `frontend/src/components/StationList.tsx` — **new** list view component
+- `frontend/src/lib/types.ts` — `usage_cost` on `StationListItem`
+- `backend/app/schemas.py` — `usage_cost` on `StationListItem`
+- `backend/app/api/stations.py` — include `usage_cost` in list endpoint
+- `.gitignore` — added `*.log`
+- `CHATLOG.md` — this entry
+
+---
+
+# ChargeSpot Development Session — 2026-06-09 (Part 2)
+
+## Problems Fixed
+
+### 19. M4 — FilterPanel invisible in dark mode
+- **Root cause:** FilterPanel used `bg-white`, `text-gray-600`, `border-gray-200` etc. with no `dark:` variants. In dark mode the white background and light gray text made the entire panel (button, dropdown, labels, selects, input) unreadable.
+- **Fix:** Added `dark:bg-gray-800/95`, `dark:border-gray-600`, `dark:text-gray-300` etc. to the toggle button; `dark:bg-gray-800`/`dark:border-gray-700` to the dropdown panel; `dark:bg-gray-900`/`dark:text-gray-100` to selects and inputs; `dark:text-gray-400` to labels and clear-all link.
+
+### 20. M1 — `estimateChargeTime` ignores `max_ac_kw` for AC connectors
+- **Root cause:** Line 69 of `vehicles.ts`: `const effectivePower = Math.min(connectorPowerKw, vehicle.max_dc_kw)`. Always capped at `max_dc_kw` — for AC connectors (Type 1/2/Mennekes/J1772) the vehicle's `max_ac_kw` (typically 6.6–11 kW) was ignored. E.g., a Nissan Leaf (6.6 kW AC) plugged into a 7.4 kW AC connector was calculated at 7.4 kW instead of 6.6 kW.
+- **Fix:** Added `connectorType` parameter to `estimateChargeTime` with `isAcConnector()` helper. For AC connectors, caps at `Math.min(connectorPowerKw, vehicle.max_ac_kw)`. For DC connectors, uses `max_dc_kw` as before. Call site in `ChargeCalculator` now passes `selectedConnector.type`.
+
+### 21. Navigation integration (Google Maps, Apple Maps, Waze)
+- **Fix:** Added three navigation buttons in the station detail panel below pricing. Each opens the respective app's directions with the station's lat/lng as destination:
+  - Google Maps: `maps.google.com/maps/dir/?api=1&destination=LAT,LNG`
+  - Apple Maps: `maps.apple.com/?daddr=LAT,LNG`
+  - Waze: `waze.com/ul?ll=LAT,LNG&navigate=yes`
+
+### 22. Restored Nominatim suggestions (zero React re-render)
+- **Root cause (of original removal):** React state (`setSuggestions`) caused re-renders that fought the Android virtual keyboard, dropping keystrokes.
+- **Fix:** Suggestions managed entirely via DOM manipulation inside a `useEffect`. No React state for suggestions — dropdown is created/destroyed via `suggestionsRef.current.innerHTML` and `document.createElement`. Debounced fetch (250ms) with request-counter pattern. Click-outside listener closes the dropdown. Dropdown positioned at `right: 104px` to avoid overlapping buttons.
+- **Key design:** The `<input>` remains uncontrolled (no `value` prop, no React event handlers). Zero React involvement in the typing experience.
+
+### 23. Sort stations by price
+- **Fix:** Added `parseUsageCost()` utility in `vehicles.ts` (extracts first `$X.XX` from `usage_cost`, returns `Infinity` for unparseable). Amber toggle button in the header. When active, stations are sorted cheapest-first via `useMemo` and passed to the Map. Cheapest station gets a gold marker (`#f59e0b`). Usage cost displayed in every popup. Station count indicator shows "cheapest first". Backend: `usage_cost` added to `StationListItem` schema and list endpoint.
+
+### 24. List view (alternative to the map)
+- **Fix:** New `StationList` component — scrollable panel of station cards showing name (with status dot), address, connector types (up to 3), pricing, max power, and non-working status badges. Blue toggle button (≡ hamburger icon) in the header. Panel slides in from the left (`max-w-sm`). Clicking a card selects the station: opens detail panel, flies map to station at zoom 15, highlights marker. List respects sort-by-price. Both list and detail panels can be open simultaneously (left and right).
+
+## Current State
+- **Frontend:** All audit items resolved:
+  - M1 (AC charge time cap) ✅
+  - M4 (FilterPanel dark mode) ✅
+  - Navigation integration ✅
+  - Nominatim suggestions ✅
+  - Sort by price ✅
+  - List view ✅
+- **Backend:** Port 8000, 25 seeded stations, `usage_cost` now included in list endpoint
+- **Search:** Functional with Nominatim autocomplete suggestions
+
+## Running Services
+- **Frontend:** `http://localhost:3000` (Next.js production)
+- **Backend:** `http://localhost:8000` (FastAPI, 25 seed stations)
+- **API proxy:** All `/api/*` on port 3000 → port 8000
+
+## Files Modified (this session)
+- `frontend/src/components/FilterPanel.tsx` — dark mode classes on all elements
+- `frontend/src/lib/vehicles.ts` — `isAcConnector`, `estimateChargeTime` connector type param, `parseUsageCost`
+- `frontend/src/components/ChargeCalculator.tsx` — pass connector type to `estimateChargeTime`
+- `frontend/src/components/StationDetail.tsx` — Google/Apple/Waze navigation buttons
+- `frontend/src/components/SearchBar.tsx` — restored Nominatim suggestions via DOM manipulation
+- `frontend/src/components/Map.tsx` — `cheapestStationId` prop, gold marker, usage cost in popup
+- `frontend/src/components/StationList.tsx` — **new** list view component
+- `frontend/src/app/page.tsx` — sort-by-price state/button, list view toggle/panel, list import, `handleSelect` flies to station
+- `frontend/src/lib/types.ts` — `usage_cost` on `StationListItem`
+- `backend/app/schemas.py` — `usage_cost` on `StationListItem`
+- `backend/app/api/stations.py` — include `usage_cost` in list endpoint
 - `CHATLOG.md` — this entry
