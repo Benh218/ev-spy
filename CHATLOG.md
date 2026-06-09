@@ -222,3 +222,40 @@ Despite 8+ rounds of fixes, the core search functionality never worked because *
 | 2 | `oldString: "- \`CHATLOG.md\` — this entry"` | Same line in Session 1 and Session 2 sections | Added more surrounding lines as anchor |
 | 3 | `oldString: SearchBar + CHATLOG + Current State` | File had already been partially edited — `Current State` section no longer matched | Re-read file to get fresh content |
 | 4 | `oldString: "- \`CHATLOG.md\` — this entry"` (2nd time) | Same duplicate-match problem | Anchored to the two-line `.gitignore` + `CHATLOG.md` ending |
+
+---
+
+# ChargeSpot Development Session — 2026-06-09 (Part 3)
+
+## Discussion: Monetization & Real Data
+
+### Monetization ideas
+- **Sponsored listings** — Charger networks pay for featured pins/placement
+- **Lead gen / affiliate** — Referrals to charger manufacturers or home EVSE installers
+- **Premium features** — Subscription for route optimization, battery degradation tracking, charge history analytics
+- **Data licensing** — Anonymized usage patterns, reliability scores, dwell times to networks/utilities
+- **Crowdsourced rewards** — Verified check-in gamification with local business coupons
+
+### Populating real EV charge station data
+The app already has full **Open Charge Map (OCM)** integration in `backend/app/services/ocm_service.py`. To use real data:
+
+1. **Get a free OCM API key** at https://openchargemap.org/site/register
+2. **Add it to `backend/.env`:**
+   ```
+   CHARGESPOT_OCM_API_KEY=your_key_here
+   ```
+3. **Refresh stations via API:**
+   ```bash
+   curl -X POST "http://localhost:8000/api/stations/refresh?lat=-33.8688&lng=151.2093&radius_km=50"
+   ```
+   Or pass `?refresh=true` on any search. Data is fetched from OCM, parsed (connectors, addresses, pricing), saved to SQLite, and served from local DB on subsequent queries.
+
+Without an API key, OCM still works but is rate-limited to ~100 requests/day with public access.
+
+## Running Services
+- **Frontend:** `http://localhost:3000` (Next.js production)
+- **Backend:** `http://localhost:8000` (FastAPI, 25 seed stations)
+- **API proxy:** All `/api/*` on port 3000 → port 8000
+
+## Files Modified
+- `CHATLOG.md` — this entry
