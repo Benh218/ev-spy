@@ -130,9 +130,9 @@ export default function Map({ stations, selectedId, onSelect, center, zoom, dark
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url={dark
           ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          : "https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
         }
-        detectRetina={true}
+        detectRetina={!dark}
       />
 
       <MapController center={center} zoom={zoom} />

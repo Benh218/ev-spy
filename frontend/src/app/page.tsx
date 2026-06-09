@@ -33,7 +33,7 @@ export default function Home() {
   const [detailStationId, setDetailStationId] = useState<number | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [center, setCenter] = useState<[number, number]>(SYDNEY);
-  const [zoom, setZoom] = useState(14);
+  const [zoom, setZoom] = useState(15);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<StationFilters>({
     connectorType: "",
@@ -73,7 +73,7 @@ export default function Home() {
             });
             if (id !== reqIdRef.current) return;
             setCenter([qlat, qlng]);
-            setZoom(14);
+            setZoom(15);
           } else {
             data = await searchStations({
               q,
@@ -92,7 +92,7 @@ export default function Home() {
           if (data.length > 0) {
             if (id !== reqIdRef.current) return;
             setCenter([data[0].latitude, data[0].longitude]);
-            setZoom(14);
+            setZoom(15);
           }
         } else if (lat !== undefined && lng !== undefined) {
           data = await searchStations({
@@ -161,7 +161,7 @@ export default function Home() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setCenter([lat, lng]);
-        setZoom(13);
+        setZoom(14);
         loadStations(lat, lng);
       },
       () => {
@@ -175,13 +175,13 @@ export default function Home() {
     setDetailStationId(station.id);
     setShowDetail(true);
     setCenter([station.latitude, station.longitude]);
-    setZoom(15);
+    setZoom(16);
   }, []);
 
   const handleTripNavigate = useCallback(
     (lat: number, lng: number, _label: string) => {
       setCenter([lat, lng]);
-      setZoom(10);
+      setZoom(11);
       loadStations(lat, lng);
     },
     [loadStations]
