@@ -30,7 +30,8 @@ export default function ChargeCalculator({
       vehicle,
       selectedConnector.power_kw,
       currentSoc,
-      targetSoc
+      targetSoc,
+      selectedConnector.type
     );
     const cost = usageCost
       ? estimateCost(vehicle, selectedConnector.power_kw, currentSoc, targetSoc, usageCost)

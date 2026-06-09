@@ -59,14 +59,23 @@ export function getCompatibleConnectors(vehicle: Vehicle): string[] {
   return vehicle.connector_types;
 }
 
+function isAcConnector(connectorType: string): boolean {
+  const t = connectorType.toLowerCase();
+  return t.includes("type") || t.includes("j1772") || t.includes("mennekes");
+}
+
 export function estimateChargeTime(
   vehicle: Vehicle,
   connectorPowerKw: number,
   currentSoc: number,
-  targetSoc: number
+  targetSoc: number,
+  connectorType?: string
 ): { hours: number; minutes: number } {
   const usableKwh = vehicle.battery_kwh * ((targetSoc - currentSoc) / 100);
-  const effectivePower = Math.min(connectorPowerKw, vehicle.max_dc_kw);
+  const vehicleMaxKw = (connectorType && isAcConnector(connectorType))
+    ? vehicle.max_ac_kw
+    : vehicle.max_dc_kw;
+  const effectivePower = Math.min(connectorPowerKw, vehicleMaxKw);
   if (effectivePower <= 0) return { hours: 0, minutes: 0 };
   const hours = usableKwh / effectivePower;
   return {

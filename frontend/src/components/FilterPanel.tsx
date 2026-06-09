@@ -26,10 +26,10 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 px-4 py-3 rounded-xl border shadow-sm bg-white/95 text-sm transition-colors ${
+        className={`flex items-center gap-2 px-4 py-3 rounded-xl border shadow-sm bg-white/95 dark:bg-gray-800/95 text-sm transition-colors ${
           hasFilters
-            ? "border-green-500 text-green-700"
-            : "border-gray-200 text-gray-600 hover:bg-gray-50"
+            ? "border-green-500 text-green-700 dark:text-green-400"
+            : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
         }`}
       >
         <svg
@@ -52,9 +52,9 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 z-[1000] p-4">
+        <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-[1000] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm">Filters</h3>
+            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">Filters</h3>
             {hasFilters && (
               <button
                 onClick={() =>
@@ -64,7 +64,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
                     operator: "",
                   })
                 }
-                className="text-xs text-green-600 hover:text-green-800"
+                className="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
               >
                 Clear all
               </button>
@@ -73,13 +73,13 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                 Connector Type
               </label>
               <select
                 value={filters.connectorType}
                 onChange={(e) => update({ connectorType: e.target.value })}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">All connectors</option>
                 {CONNECTOR_OPTIONS.map((opt) => (
@@ -91,7 +91,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                 Minimum Power
               </label>
               <select
@@ -103,7 +103,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
                       : null,
                   })
                 }
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 {POWER_OPTIONS.map((opt) => (
                   <option key={opt.label} value={opt.value ?? ""}>
@@ -114,7 +114,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                 Network / Operator
               </label>
               <input
@@ -122,7 +122,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
                 value={filters.operator}
                 onChange={(e) => update({ operator: e.target.value })}
                 placeholder="e.g. ChargeFox, Tesla..."
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
