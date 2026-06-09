@@ -213,3 +213,12 @@ Despite 8+ rounds of fixes, the core search functionality never worked because *
 - `backend/app/schemas.py` — `usage_cost` on `StationListItem`
 - `backend/app/api/stations.py` — include `usage_cost` in list endpoint
 - `CHATLOG.md` — this entry
+
+## Failed Edits (and how they were resolved)
+
+| # | What | Why it failed | Fixed by |
+|---|------|---------------|----------|
+| 1 | `oldString: ".next/"` in `.gitignore` | Two matches — both `frontend/.next/` and standalone `.next/` | Used `__pycache__/...` surrounding context |
+| 2 | `oldString: "- \`CHATLOG.md\` — this entry"` | Same line in Session 1 and Session 2 sections | Added more surrounding lines as anchor |
+| 3 | `oldString: SearchBar + CHATLOG + Current State` | File had already been partially edited — `Current State` section no longer matched | Re-read file to get fresh content |
+| 4 | `oldString: "- \`CHATLOG.md\` — this entry"` (2nd time) | Same duplicate-match problem | Anchored to the two-line `.gitignore` + `CHATLOG.md` ending |
