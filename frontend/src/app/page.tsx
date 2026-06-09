@@ -33,7 +33,7 @@ export default function Home() {
   const [detailStationId, setDetailStationId] = useState<number | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [center, setCenter] = useState<[number, number]>(SYDNEY);
-  const [zoom, setZoom] = useState(12);
+  const [zoom, setZoom] = useState(14);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<StationFilters>({
     connectorType: "",
@@ -72,7 +72,7 @@ export default function Home() {
             });
             if (id !== reqIdRef.current) return;
             setCenter([qlat, qlng]);
-            setZoom(12);
+            setZoom(14);
           } else {
             data = await searchStations({
               q,
@@ -91,7 +91,7 @@ export default function Home() {
           if (data.length > 0) {
             if (id !== reqIdRef.current) return;
             setCenter([data[0].latitude, data[0].longitude]);
-            setZoom(12);
+            setZoom(14);
           }
         } else if (lat !== undefined && lng !== undefined) {
           data = await searchStations({
@@ -222,7 +222,7 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="flex md:hidden items-center gap-2 overflow-x-auto mt-2 pb-1">
+          <div className="flex md:hidden items-center gap-2 flex-wrap mt-2 pb-1">
             <VehicleSelector vehicleId={vehicleId} onChange={setVehicleId} />
             <TripPlanner
               onNavigate={handleTripNavigate}
