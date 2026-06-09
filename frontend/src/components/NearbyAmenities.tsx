@@ -46,7 +46,7 @@ export default function NearbyAmenities({ lat, lng }: NearbyAmenitiesProps) {
         data.elements.map((el: any) => ({
           name: el.tags?.name || `${selectedType}`,
           type: selectedType,
-          distance: haversine(lat, lng, el.lat, el.lng),
+          distance: haversine(lat, lng, el.lat, el.lon),
           lat: el.lat,
           lng: el.lon,
         })).sort((a: Amenity, b: Amenity) => a.distance - b.distance)

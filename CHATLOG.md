@@ -87,3 +87,59 @@ Despite 8+ rounds of fixes, the core search functionality never worked because *
 - `backend/app/services/mock_data.py` — deepcopy before pop
 - `frontend/src/components/SearchBar.tsx` — text colors, suggestions positioning, Nominatim error handling
 - `CHATLOG.md` — this entry
+
+---
+
+# ChargeSpot Development Session — 2026-06-09
+
+## Problems Fixed
+
+### 14. `loadingRef` guard silently dropped concurrent searches
+- **Root cause:** `page.tsx:loadStations` used a `useRef(false)` boolean guard. If the user typed and submitted a search during the initial `useEffect` load (or any concurrent filter change), `loadingRef.current` was `true` and the search was silently dropped. The user pressed Enter, nothing happened, and no error was shown.
+- **Fix:** Replaced the boolean guard with a request-counter pattern (`reqIdRef`). Each `loadStations` call gets a unique incrementing ID. Only the response matching the current ID updates state. If a newer request supersedes an older one, the stale response is ignored. No request is ever dropped.
+- **Impact:** Searches are never silently discarded. Rapid filter changes or overlapping API calls resolve correctly — the latest call always wins.
+
+### 15. NearbyAmenities NaN distances (C1)
+- **Root cause:** `NearbyAmenities.tsx:49` used `el.lng` to read longitude from the Overpass API response. Overpass returns `lon`, not `lng`. `el.lng` is `undefined`, causing `haversine(lat, lng, el.lat, undefined)` to compute `NaN` for every distance.
+- **Impact:** All amenity distances displayed as "NaNkm" or "NaNkm".
+- **Fix:** Changed `el.lng` to `el.lon`.
+
+### 16. Connector compatibility always returned true (C2)
+- **Root cause:** `StationDetail.tsx:176` called `isConnectorCompatible(c.type, { connector_types: [c.type] } as any)`. The second argument is a fake vehicle object containing the connector's own type — the function checks "does this connector match itself?", which is always true. The `as any` cast bypassed TypeScript entirely.
+- **Fix:** Imported `getVehicle` from `@/lib/vehicles`, looked up the real vehicle by `vehicleId`, and passed the actual vehicle profile to `isConnectorCompatible`.
+
+### 17. Android keyboard swallowed first keystroke / invisible input text
+- **Root cause:** Two compounding issues on mobile (Opera/Brave on Android):
+  1. React's controlled input (`value={query}` + `onChange`) fought the Android virtual keyboard's autocomplete/autocorrect engine, causing the first character to be dropped and subsequent text to behave erratically.
+  2. In dark mode, `bg-white/95` (nearly white background) with `dark:text-gray-100` (light gray text) made input text nearly invisible on the user's device.
+- **Fix (round 1):** Added `dark:bg-gray-800`, `dark:border-gray-700`, placeholder color, and `autoComplete="off"`/`autoCapitalize="off"`/`autoCorrect="off"`/`spellCheck="false"`.
+- **Fix (round 2):** Switched to uncontrolled input with inline styles (`color: #000000`, `backgroundColor: #ffffff`) — no Tailwind classes, no dark mode interference, always visible.
+- **Fix (round 3 — final):** Completely removed React's event system from the search input. The form now uses a native `addEventListener("submit")` attached in a `useEffect`. The `<input>` has no `value` prop, no `onChange`, no `onInput` — zero React involvement. Suggestions (Nominatim) were removed entirely to eliminate state updates that could interrupt typing. Buttons are compact 48px icons for maximum input width on mobile.
+- **Impact:** Typing works normally on Android. Every keystroke is captured. Text is always black on white.
+
+### 18. `fuser -k` silently failed in container (recurring)
+- **Root cause:** `fuser` is not available in this container environment. Every `fuser -k 3000/tcp` call throughout the session silently did nothing. Zombie `next-server` processes accumulated, and the user was served stale builds.
+- **Fix:** Discovered that `pkill -9 -f next-server` and Node.js `process.kill(pid, 'SIGKILL')` work. Final zombie kill used Node.js directly.
+- **Lesson:** Verify process-kill tools exist before relying on them. `which fuser` or `command -v fuser` first. Use `pkill -f` or Node.js `process.kill` as fallbacks.
+
+## Current State
+- **Frontend:** `page-55a69d4a874beec3.js` on disk and served. Uncontrolled search input with native event listeners.
+- **Backend:** Port 8000, 25 seeded stations, all 12 API endpoints working.
+- **Search:** Functional. User confirmed "it works."
+- **Known remaining issues (from audit):**
+  - M1: `estimateChargeTime` ignores `max_ac_kw` for AC connectors
+  - M4: FilterPanel missing dark mode classes
+  - Missing: navigation integration (Google Maps / Apple Maps deep link), sort by price, list view
+  - Suggestions (Nominatim) removed intentionally — can be restored as enhancement
+
+## Running Services
+- **Frontend:** `http://localhost:3000` (Next.js production)
+- **Backend:** `http://localhost:8000` (FastAPI, 25 seed stations)
+- **API proxy:** All `/api/*` on port 3000 → port 8000
+
+## Files Modified (this session)
+- `frontend/src/app/page.tsx` — loadingRef → reqIdRef request counter pattern
+- `frontend/src/components/NearbyAmenities.tsx` — el.lng → el.lon (NaN fix)
+- `frontend/src/components/StationDetail.tsx` — actual vehicle data for connector compatibility
+- `frontend/src/components/SearchBar.tsx` — complete rewrite: native event listeners, inline styles, uncontrolled input, no suggestions, compact mobile layout
+- `CHATLOG.md` — this entry

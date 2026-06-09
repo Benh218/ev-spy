@@ -39,7 +39,7 @@ export default function Home() {
     operator: "",
   });
   const [error, setError] = useState("");
-  const loadingRef = useRef(false);
+  const reqIdRef = useRef(0);
 
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const { recent, addRecent } = useRecentStations();
@@ -48,8 +48,7 @@ export default function Home() {
 
   const loadStations = useCallback(
     async (lat?: number, lng?: number, q?: string) => {
-      if (loadingRef.current) return;
-      loadingRef.current = true;
+      const id = ++reqIdRef.current;
       setLoading(true);
       setError("");
 
@@ -67,6 +66,7 @@ export default function Home() {
               min_power_kw: filters.minPowerKw ?? undefined,
               operator: filters.operator || undefined,
             });
+            if (id !== reqIdRef.current) return;
             setCenter([qlat, qlng]);
             setZoom(12);
           } else {
@@ -85,6 +85,7 @@ export default function Home() {
             operator: filters.operator || undefined,
           });
           if (data.length > 0) {
+            if (id !== reqIdRef.current) return;
             setCenter([data[0].latitude, data[0].longitude]);
             setZoom(12);
           }
@@ -105,16 +106,19 @@ export default function Home() {
           });
         }
 
+        if (id !== reqIdRef.current) return;
         setStations(data);
         if (data.length === 0) {
           setError("No charging stations found in this area.");
         }
       } catch (e) {
+        if (id !== reqIdRef.current) return;
         console.error("Failed to load stations", e);
         setError("Failed to load stations. Is the backend running?");
       } finally {
-        setLoading(false);
-        loadingRef.current = false;
+        if (id === reqIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     [filters]
@@ -196,7 +200,6 @@ export default function Home() {
             <SearchBar
               onSearch={handleSearch}
               onUseMyLocation={handleUseMyLocation}
-              loading={loading}
             />
           </div>
           <div className="flex-shrink-0 flex items-center gap-2">

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { StationDetail } from "@/lib/types";
 import { getStation, submitReport } from "@/lib/api";
 import { STATUS_COLORS, STATUS_LABELS } from "@/lib/types";
-import { isConnectorCompatible } from "@/lib/vehicles";
+import { getVehicle, isConnectorCompatible } from "@/lib/vehicles";
 import ChargeCalculator from "./ChargeCalculator";
 import NearbyAmenities from "./NearbyAmenities";
 import PhotoUpload from "./PhotoUpload";
@@ -44,6 +44,8 @@ export default function StationDetail({
       .catch(() => setStation(null))
       .finally(() => setLoading(false));
   }, [stationId, photosUpdated, onAddRecent]);
+
+  const vehicle = vehicleId ? getVehicle(vehicleId) : undefined;
 
   const handleSubmitReport = useCallback(async () => {
     if (!reportStatus) return;
@@ -173,7 +175,7 @@ export default function StationDetail({
           </h3>
           <div className="space-y-2">
             {station.connectors.map((c) => {
-              const compatible = vehicleId ? isConnectorCompatible(c.type, { connector_types: [c.type] } as any) : true;
+              const compatible = vehicle ? isConnectorCompatible(c.type, vehicle) : true;
               return (
                 <div
                   key={c.id}
